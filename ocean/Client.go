@@ -1,5 +1,5 @@
 //Package ocean encapsulates the DigitalOcean API into an easy-to-use, idiomatic
-//golang interface.
+//golang package.
 //
 //It's designed to easily be able to inspect, create, update, and destroy droplets
 //with relative ease, with the implementation of digitalocean tooling in mind,
