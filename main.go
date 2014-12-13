@@ -1,13 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
+	"os"
+	"runtime"
 
-	"github.com/andrewstuart/linedropper/ocean"
+	"github.com/andrewstuart/dropper/ocean"
 )
 
+const NUM_TO_CREATE = 8
+
 func main() {
-	t, err := ReadToken("./.token")
+	s := os.ExpandEnv("$HOME/.do-token")
+	t, err := ReadToken(s)
+
+	runtime.GOMAXPROCS(8)
 
 	if err != nil {
 		log.Fatal(err)
@@ -15,7 +23,11 @@ func main() {
 
 	c := ocean.NewClient(t)
 
-	drops := c.GetDroplets()
+	imgs, err := c.GetImages()
 
-	drops[0].Delete()
+	enc := json.NewEncoder(os.Stdout)
+
+	for _, i := range imgs {
+		enc.Encode(i)
+	}
 }

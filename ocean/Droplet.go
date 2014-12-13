@@ -12,7 +12,7 @@ type SSHKey string
 // }
 
 type Droplet struct {
-	Id                int        `json:"id"`
+	Id                int        `json:"id,omitempty"`
 	Name              string     `json:"name"`
 	Region            RegionSlug `json:"region"`
 	Size              SizeSlug   `json:"size"`
