@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -33,7 +32,7 @@ type ResponseTime struct {
 //API Client type
 type Client struct {
 	token         Token
-	responseTimes []ResponseTime
+	ResponseTimes []ResponseTime
 }
 
 //Get a client based on a token
@@ -45,6 +44,9 @@ func NewClient(token Token) Client {
 
 //Do a request
 func (c *Client) doReq(r *http.Request) *json.Decoder {
+
+	r.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
+
 	t := time.Now()
 	res, err := cli.Do(r)
 
@@ -52,12 +54,23 @@ func (c *Client) doReq(r *http.Request) *json.Decoder {
 		log.Fatal(err)
 	}
 
-	c.responseTimes = append(c.responseTimes, ResponseTime{
+	c.ResponseTimes = append(c.ResponseTimes, ResponseTime{
 		Time: time.Now().Sub(t),
 		Path: r.RequestURI,
 	})
 
-	return json.NewDecoder(io.TeeReader(res.Body, os.Stdout))
+	return json.NewDecoder(res.Body)
+	// return json.NewDecoder(io.TeeReader(res.Body, os.Stdout))
+}
+
+func (c *Client) doDelete(path string) *json.Decoder {
+	req, err := http.NewRequest("DELETE", BASE_URL+path, nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return c.doReq(req)
 }
 
 //Do a post
@@ -68,7 +81,7 @@ func (c *Client) doPost(path string, r io.Reader) *json.Decoder {
 		log.Fatal(err)
 	}
 
-	req.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
+	req.Header["Content-Type"] = []string{"application/json"}
 
 	return c.doReq(req)
 }
@@ -80,8 +93,6 @@ func (c *Client) doGet(path string) *json.Decoder {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	req.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
 
 	return c.doReq(req)
 }
@@ -138,5 +149,23 @@ func (c *Client) CreateDroplet(d *Droplet) {
 
 	r := strings.NewReader(string(b))
 	dec := c.doPost("droplets", r)
+
 	dec.Decode(d)
+
+	d.Client = c
+}
+
+func (c *Client) GetDroplets() []Droplet {
+	dec := c.doGet("droplets")
+
+	d := &DropletResp{}
+
+	dec.Decode(d)
+
+	for _, d := range d.Droplets {
+		d.Client = c
+		d.token = c.token
+	}
+
+	return d.Droplets
 }

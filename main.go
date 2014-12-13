@@ -15,14 +15,11 @@ func main() {
 
 	c := ocean.NewClient(t)
 
-	d := &ocean.Droplet{
-		Name:   "foo",
-		Region: "sfo1",
-		Size:   "512mb",
-		Image:  "ubuntu-12-04-x64",
-	}
+	drops := c.GetDroplets()
 
-	c.CreateDroplet(d)
+	d := drops[0]
 
-	log.Println(d)
+	log.Println(d.Id)
+
+	d.Delete()
 }
