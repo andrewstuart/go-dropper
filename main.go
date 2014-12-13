@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"sync"
 
 	"github.com/andrewstuart/linedropper/ocean"
 )
@@ -16,33 +15,14 @@ func main() {
 
 	c := ocean.NewClient(t)
 
-	wg := sync.WaitGroup{}
+	d := &ocean.Droplet{
+		Name:   "foo",
+		Region: "sfo1",
+		Size:   "512mb",
+		Image:  "ubuntu-12-04-x64",
+	}
 
-	wg.Add(3)
+	c.CreateDroplet(d)
 
-	go func() {
-		rs := c.GetRegions()
-		log.Println(rs)
-		wg.Done()
-	}()
-
-	go func() {
-		is := c.GetImages()
-
-		for _, i := range is {
-			log.Println(i.Name)
-		}
-
-		wg.Done()
-	}()
-
-	go func() {
-		sz := c.GetSizes()
-
-		log.Println(sz)
-		wg.Done()
-	}()
-
-	wg.Wait()
-
+	log.Println(d)
 }

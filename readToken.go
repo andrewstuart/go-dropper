@@ -13,5 +13,5 @@ func ReadToken(fname string) (ocean.Token, error) {
 		return "", err
 	}
 
-	return Token(string(b)), nil
+	return ocean.Token(string(b)), nil
 }

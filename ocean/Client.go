@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -22,17 +24,26 @@ func init() {
 	cli = &http.Client{}
 }
 
-//API Client type
-type Client struct {
-	token Token
+//Used for measuring client response times
+type ResponseTime struct {
+	Time time.Duration
+	Path string
 }
 
+//API Client type
+type Client struct {
+	token         Token
+	responseTimes []ResponseTime
+}
+
+//Get a client based on a token
 func NewClient(token Token) Client {
 	return Client{
 		token: token,
 	}
 }
 
+//Do a request
 func (c *Client) doReq(r *http.Request) *json.Decoder {
 	t := time.Now()
 	res, err := cli.Do(r)
@@ -41,11 +52,15 @@ func (c *Client) doReq(r *http.Request) *json.Decoder {
 		log.Fatal(err)
 	}
 
-	log.Println(time.Now().Sub(t))
+	c.responseTimes = append(c.responseTimes, ResponseTime{
+		Time: time.Now().Sub(t),
+		Path: r.RequestURI,
+	})
 
-	return json.NewDecoder(res.Body)
+	return json.NewDecoder(io.TeeReader(res.Body, os.Stdout))
 }
 
+//Do a post
 func (c *Client) doPost(path string, r io.Reader) *json.Decoder {
 	req, err := http.NewRequest("POST", BASE_URL+path, r)
 
@@ -58,6 +73,7 @@ func (c *Client) doPost(path string, r io.Reader) *json.Decoder {
 	return c.doReq(req)
 }
 
+//Do a get
 func (c *Client) doGet(path string) *json.Decoder {
 	req, err := http.NewRequest("GET", BASE_URL+path, nil)
 
@@ -70,6 +86,7 @@ func (c *Client) doGet(path string) *json.Decoder {
 	return c.doReq(req)
 }
 
+//Get a list of regions for the user
 func (c *Client) GetRegions() []Region {
 	dec := c.doGet("regions")
 
@@ -80,6 +97,7 @@ func (c *Client) GetRegions() []Region {
 	return rs.Regions
 }
 
+//Get a list of images for the user
 func (c *Client) GetImages() []Image {
 	dec := c.doGet("images")
 
@@ -87,9 +105,20 @@ func (c *Client) GetImages() []Image {
 
 	dec.Decode(is)
 
+	dec2 := c.doGet("images?type=distribution")
+
+	is2 := &ImageResp{}
+
+	dec2.Decode(is2)
+
+	for _, i := range is2.Images {
+		is.Images = append(is.Images, i)
+	}
+
 	return is.Images
 }
 
+//Get a list of sizes for the user
 func (c *Client) GetSizes() []Size {
 	dec := c.doGet("sizes")
 
@@ -100,5 +129,14 @@ func (c *Client) GetSizes() []Size {
 	return sr.Sizes
 }
 
-func (c *Client) CreateDroplet(Droplet) {
+func (c *Client) CreateDroplet(d *Droplet) {
+	b, err := json.Marshal(d)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r := strings.NewReader(string(b))
+	dec := c.doPost("droplets", r)
+	dec.Decode(d)
 }
