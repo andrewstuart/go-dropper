@@ -18,7 +18,7 @@ type Region struct {
 	Slug      RegionSlug `json:"slug"`
 	Features  []string   `json:"features"`
 	Available bool       `json:"available"`
-	Sizes     []string   `json:"sizes"`
+	Sizes     []SizeSlug `json:"sizes"`
 	Images    map[string]*Image
 }
 

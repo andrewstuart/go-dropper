@@ -90,5 +90,15 @@ func (c *Client) GetImages() []Image {
 	return is.Images
 }
 
+func (c *Client) GetSizes() []Size {
+	dec := c.doGet("sizes")
+
+	sr := &SizeResp{}
+
+	dec.Decode(sr)
+
+	return sr.Sizes
+}
+
 func (c *Client) CreateDroplet(Droplet) {
 }

@@ -16,7 +16,7 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		rs := c.GetRegions()
@@ -26,7 +26,18 @@ func main() {
 
 	go func() {
 		is := c.GetImages()
-		log.Println(is)
+
+		for _, i := range is {
+			log.Println(i.Name)
+		}
+
+		wg.Done()
+	}()
+
+	go func() {
+		sz := c.GetSizes()
+
+		log.Println(sz)
 		wg.Done()
 	}()
 
