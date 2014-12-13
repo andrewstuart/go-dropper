@@ -162,9 +162,8 @@ func (c *Client) GetDroplets() []Droplet {
 
 	dec.Decode(d)
 
-	for _, d := range d.Droplets {
-		d.Client = c
-		d.token = c.token
+	for i := range d.Droplets {
+		d.Droplets[i].Client = c
 	}
 
 	return d.Droplets

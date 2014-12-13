@@ -17,9 +17,5 @@ func main() {
 
 	drops := c.GetDroplets()
 
-	d := drops[0]
-
-	log.Println(d.Id)
-
-	d.Delete()
+	drops[0].Delete()
 }

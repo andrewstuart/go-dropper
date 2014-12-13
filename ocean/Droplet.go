@@ -1,9 +1,6 @@
 package ocean
 
-import (
-	"fmt"
-	"log"
-)
+import "fmt"
 
 type SSHKey string
 
@@ -32,8 +29,8 @@ type DropletResp struct {
 	Droplets []Droplet `json:"droplets"`
 }
 
+//Delete a droplet
 func (d *Droplet) Delete() {
 	url := fmt.Sprintf("droplets/%d", d.Id)
-	log.Println(d.ResponseTimes)
 	d.doDelete(url)
 }
