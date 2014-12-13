@@ -11,7 +11,7 @@ general API contracts.
 
 [Playground](https://play.golang.org/p/7QKLMBD_QB)
 
-```golang
+```go
 package main
 
 import (
