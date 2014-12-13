@@ -19,6 +19,7 @@ type Region struct {
 	Features  []string   `json:"features"`
 	Available bool       `json:"available"`
 	Sizes     []string   `json:"sizes"`
+	Images    map[string]*Image
 }
 
 //RegionResp is a wrapper for the region responses

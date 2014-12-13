@@ -1,6 +1,9 @@
 package main
 
-import "log"
+import (
+	"log"
+	"sync"
+)
 
 func main() {
 	t, err := ReadToken("./.token")
@@ -11,5 +14,22 @@ func main() {
 
 	c := NewClient(t)
 
-	c.GetRegions()
+	wg := sync.WaitGroup{}
+
+	wg.Add(2)
+
+	go func() {
+		rs := c.GetRegions()
+		log.Println(rs)
+		wg.Done()
+	}()
+
+	go func() {
+		is := c.GetImages()
+		log.Println(is)
+		wg.Done()
+	}()
+
+	wg.Wait()
+
 }

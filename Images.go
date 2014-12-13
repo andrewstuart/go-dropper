@@ -10,3 +10,7 @@ type Image struct {
 	Public  bool         `json:"public"`
 	Regions []RegionSlug `json:"regions"`
 }
+
+type ImageResp struct {
+	Images []Image `json:"images"`
+}

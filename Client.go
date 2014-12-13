@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 const BASE_URL = "https://api.digitalocean.com/v2/"
@@ -31,8 +32,9 @@ func NewClient(token Token) Client {
 	}
 }
 
-func (c *Client) GetRegions() {
-	req, err := http.NewRequest("GET", BASE_URL+"regions", nil)
+func (c *Client) doReq(path string) *json.Decoder {
+	t := time.Now()
+	req, err := http.NewRequest("GET", BASE_URL+path, nil)
 
 	if err != nil {
 		log.Fatal(err)
@@ -46,11 +48,27 @@ func (c *Client) GetRegions() {
 		log.Fatal(err)
 	}
 
-	dec := json.NewDecoder(res.Body)
+	log.Println(time.Now().Sub(t))
+
+	return json.NewDecoder(res.Body)
+}
+
+func (c *Client) GetRegions() []Region {
+	dec := c.doReq("regions")
 
 	rs := &RegionResp{}
 
 	dec.Decode(rs)
 
-	fmt.Println(rs)
+	return rs.Regions
+}
+
+func (c *Client) GetImages() []Image {
+	dec := c.doReq("images")
+
+	is := &ImageResp{}
+
+	dec.Decode(is)
+
+	return is.Images
 }
