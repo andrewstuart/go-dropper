@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"sync"
+
+	"github.com/andrewstuart/linedropper/ocean"
 )
 
 func main() {
@@ -12,7 +14,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c := NewClient(t)
+	c := ocean.NewClient(t)
 
 	wg := sync.WaitGroup{}
 

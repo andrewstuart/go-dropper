@@ -1,4 +1,4 @@
-package main
+package ocean
 
 const (
 	B = 1 << (10 * iota)

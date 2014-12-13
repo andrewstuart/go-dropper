@@ -1,4 +1,4 @@
-package main
+package ocean
 
 type SizeSlug string
 
