@@ -11,13 +11,16 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
 )
 
-const BASE_URL = "https://api.digitalocean.com/v2/"
+type doer interface {
+	doReq(*http.Request) (*json.Decoder, error)
+}
+
+const DEFAULT_BASE = "https://api.digitalocean.com/v2/"
 
 //Basic abstraction over string in case token type changes
 type Token string
@@ -39,13 +42,16 @@ type ResponseTime struct {
 //API Client type
 type Client struct {
 	token         Token
+	BaseUrl       string
 	ResponseTimes []ResponseTime
+	doer
 }
 
 //Get a client based on a token
 func NewClient(token Token) Client {
 	return Client{
-		token: token,
+		token:   token,
+		BaseUrl: DEFAULT_BASE,
 	}
 }
 
@@ -58,7 +64,7 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 	res, err := client.Do(r)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if 400 <= res.StatusCode && res.StatusCode < 500 {
@@ -77,10 +83,10 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 }
 
 func (c *Client) doDelete(path string) (*json.Decoder, error) {
-	req, err := http.NewRequest("DELETE", BASE_URL+path, nil)
+	req, err := http.NewRequest("DELETE", c.BaseUrl+path, nil)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return c.doReq(req)
@@ -88,10 +94,10 @@ func (c *Client) doDelete(path string) (*json.Decoder, error) {
 
 //Do a post
 func (c *Client) doPost(path string, r io.Reader) (*json.Decoder, error) {
-	req, err := http.NewRequest("POST", BASE_URL+path, r)
+	req, err := http.NewRequest("POST", c.BaseUrl+path, r)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	req.Header["Content-Type"] = []string{"application/json"}
@@ -101,10 +107,10 @@ func (c *Client) doPost(path string, r io.Reader) (*json.Decoder, error) {
 
 //Do a get
 func (c *Client) doGet(path string) (*json.Decoder, error) {
-	req, err := http.NewRequest("GET", BASE_URL+path, nil)
+	req, err := http.NewRequest("GET", c.BaseUrl+path, nil)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return c.doReq(req)
@@ -200,7 +206,7 @@ func (c *Client) CreateDroplet(d *Droplet) error {
 	dec, err := c.doPost("droplets", r)
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	dec.Decode(d)
