@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -32,17 +33,9 @@ func NewClient(token Token) Client {
 	}
 }
 
-func (c *Client) doReq(path string) *json.Decoder {
+func (c *Client) doReq(r *http.Request) *json.Decoder {
 	t := time.Now()
-	req, err := http.NewRequest("GET", BASE_URL+path, nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
-
-	res, err := cli.Do(req)
+	res, err := cli.Do(r)
 
 	if err != nil {
 		log.Fatal(err)
@@ -53,8 +46,32 @@ func (c *Client) doReq(path string) *json.Decoder {
 	return json.NewDecoder(res.Body)
 }
 
+func (c *Client) doPost(path string, r io.Reader) *json.Decoder {
+	req, err := http.NewRequest("POST", BASE_URL+path, r)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
+
+	return c.doReq(req)
+}
+
+func (c *Client) doGet(path string) *json.Decoder {
+	req, err := http.NewRequest("GET", BASE_URL+path, nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
+
+	return c.doReq(req)
+}
+
 func (c *Client) GetRegions() []Region {
-	dec := c.doReq("regions")
+	dec := c.doGet("regions")
 
 	rs := &RegionResp{}
 
@@ -64,11 +81,14 @@ func (c *Client) GetRegions() []Region {
 }
 
 func (c *Client) GetImages() []Image {
-	dec := c.doReq("images")
+	dec := c.doGet("images")
 
 	is := &ImageResp{}
 
 	dec.Decode(is)
 
 	return is.Images
+}
+
+func (c *Client) CreateDroplet(Droplet) {
 }
