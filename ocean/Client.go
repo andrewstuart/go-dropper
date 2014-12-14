@@ -21,7 +21,7 @@ type doer interface {
 	doReq(*http.Request) (*json.Decoder, error)
 }
 
-const DEFAULT_BASE = "https://api.digitalocean.com/v2/"
+const DEFAULT_BASE_URL = "https://api.digitalocean.com/v2/"
 
 //Basic abstraction over string in case token type changes
 type Token string
@@ -49,10 +49,10 @@ type Client struct {
 }
 
 //Get a client based on a token
-func NewClient(token Token) Client {
-	return Client{
+func NewClient(token Token) *Client {
+	return &Client{
 		token:   token,
-		BaseUrl: DEFAULT_BASE,
+		BaseUrl: DEFAULT_BASE_URL,
 	}
 }
 
@@ -95,7 +95,8 @@ func (c *Client) doDelete(path string) (*json.Decoder, error) {
 
 //Do a post
 func (c *Client) doPost(path string, r io.Reader) (*json.Decoder, error) {
-	req, err := http.NewRequest("POST", c.BaseUrl+path, io.TeeReader(r, os.Stdout))
+	// req, err := http.NewRequest("POST", c.BaseUrl+path, io.TeeReader(r, os.Stdout))
+	req, err := http.NewRequest("POST", c.BaseUrl+path, r)
 
 	if err != nil {
 		return nil, err

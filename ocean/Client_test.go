@@ -174,7 +174,7 @@ func TestSize(t *testing.T) {
 func setup(ts *httptest.Server) *Client {
 	c := NewClient("abc")
 	c.BaseUrl = ts.URL + "/"
-	return &c
+	return c
 }
 
 func testCreate(ts *httptest.Server) error {

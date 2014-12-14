@@ -60,6 +60,18 @@ func NewAction(t string) *Action {
 	return &a
 }
 
+//Delete a droplet
+func (d *Droplet) Delete() error {
+	url := fmt.Sprintf("droplets/%d", d.Id)
+	_, err := d.doDelete(url)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //Reboot a Droplet
 func (d *Droplet) Reboot() (*ActionResp, error) {
 	return d.Perform(NewAction("reboot"))

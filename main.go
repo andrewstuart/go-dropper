@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 
@@ -10,7 +10,9 @@ import (
 
 const NUM_TO_CREATE = 8
 
-func main() {
+var c *ocean.Client
+
+func init() {
 	s := os.ExpandEnv("$HOME/.do-token")
 	t, err := ReadToken(s)
 
@@ -18,39 +20,51 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c := ocean.NewClient(t)
+	c = ocean.NewClient(t)
+}
 
-	// d := &ocean.Droplet{
-	// 	Name:   "foo",
-	// 	Region: "sfo1",
-	// 	Size:   "512mb",
-	// 	Image:  "lamp",
-	// }
+func main() {
 
-	// err = c.CreateDroplet(d)
-
-	drops, err := c.GetDroplets()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if len(drops) > 0 {
-		resp, err := drops[0].Rename("the-droplet")
+	switch cmd {
+	case "who":
+		acct, err := c.GetAccount()
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		enc := json.NewEncoder(os.Stdout)
+		log.Println(acct)
+		break
+	case "ls":
 
-		enc.Encode(resp)
+		if len(os.Args) > 2 {
+			switch os.Args[2] {
+			case "images":
+				imgs, err := c.GetImages()
 
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				for i := range imgs {
+					img := &imgs[i]
+					fmt.Printf("%d.\t%s (%s) - [%v]\n", i+1, img.Name, img.Slug, img.Regions)
+				}
+				break
+			}
+		} else {
+
+			drops, err := c.GetDroplets()
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			for i := range drops {
+				d := &drops[i]
+				fmt.Printf("%d.\t%s (%s) - %v\n", i+1, d.Name, d.Size, d.Networks)
+			}
+		}
+		break
 	}
-
-	// imgs, err := c.GetImages()
-
-	// for _, i := range imgs {
-	// 	enc.Encode(i)
-	// }
 }
