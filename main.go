@@ -1,9 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
-	"runtime"
 
 	"github.com/andrewstuart/dropper/ocean"
 )
@@ -14,21 +14,39 @@ func main() {
 	s := os.ExpandEnv("$HOME/.do-token")
 	t, err := ReadToken(s)
 
-	runtime.GOMAXPROCS(8)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	c := ocean.NewClient(t)
 
-	a, err := c.GetAccount()
+	// d := &ocean.Droplet{
+	// 	Name:   "foo",
+	// 	Region: "sfo1",
+	// 	Size:   "512mb",
+	// 	Image:  "lamp",
+	// }
+
+	// err = c.CreateDroplet(d)
+
+	drops, err := c.GetDroplets()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println(a)
+	if len(drops) > 0 {
+		resp, err := drops[0].Rename("the-droplet")
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		enc := json.NewEncoder(os.Stdout)
+
+		enc.Encode(resp)
+
+	}
 
 	// imgs, err := c.GetImages()
 
