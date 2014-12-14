@@ -30,7 +30,13 @@ type DropletResp struct {
 }
 
 //Delete a droplet
-func (d *Droplet) Delete() {
+func (d *Droplet) Delete() error {
 	url := fmt.Sprintf("droplets/%d", d.Id)
-	d.doDelete(url)
+	_, err := d.doDelete(url)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

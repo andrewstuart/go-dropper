@@ -145,6 +145,33 @@ func TestSizeError(t *testing.T) {
 	}
 }
 
+func TestSize(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, `{"sizes": [{"slug": "512mb", "vcpus": 1, "disk": 20000, "price_monthly": 1.2, "price_hourly": 0.12, "regions": ["sfo1"], "memory": 1000, "transfer": 1234}]}`)
+	}))
+	defer ts.Close()
+
+	c := NewClient("abc")
+	c.BaseUrl = ts.URL + "/"
+
+	ss, err := c.GetSizes()
+
+	log.Println(err)
+
+	if err != nil {
+		t.Error("GetSizes returned an error")
+	}
+
+	if len(ss) != 1 {
+		t.Errorf("Wrong number of sizes returned")
+	}
+
+	s := &ss[0]
+	if s.Slug != "512mb" || s.Disk != 20000 || s.VCpus != 1 || len(s.Regions) != 1 || s.PriceHourly != 0.12 || s.PriceMonthly != 1.2 || s.Transfer != 1234 || s.Memory != 1000 {
+		t.Errorf("Improperly parsed size: %v", s)
+	}
+}
+
 func setup(ts *httptest.Server) *Client {
 	c := NewClient("abc")
 	c.BaseUrl = ts.URL + "/"

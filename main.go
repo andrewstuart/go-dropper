@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 	"runtime"
@@ -23,11 +22,17 @@ func main() {
 
 	c := ocean.NewClient(t)
 
-	imgs, err := c.GetImages()
+	a, err := c.GetAccount()
 
-	enc := json.NewEncoder(os.Stdout)
-
-	for _, i := range imgs {
-		enc.Encode(i)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	log.Println(a)
+
+	// imgs, err := c.GetImages()
+
+	// for _, i := range imgs {
+	// 	enc.Encode(i)
+	// }
 }

@@ -79,7 +79,6 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 	})
 
 	return json.NewDecoder(res.Body), nil
-	// return json.NewDecoder(io.TeeReader(res.Body, os.Stdout))
 }
 
 func (c *Client) doDelete(path string) (*json.Decoder, error) {
@@ -214,4 +213,18 @@ func (c *Client) CreateDroplet(d *Droplet) error {
 	d.Client = c
 
 	return nil
+}
+
+func (c *Client) GetAccount() (Account, error) {
+	dec, err := c.doGet("account")
+
+	if err != nil {
+		return Account{}, errors.New(fmt.Sprintf("Error retreiving acount info:\n\t%v", err))
+	}
+
+	a := &AccountResp{}
+
+	dec.Decode(a)
+
+	return a.Account, nil
 }
