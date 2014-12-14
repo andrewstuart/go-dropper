@@ -31,6 +31,7 @@ func TestDeleteDroplet(t *testing.T) {
 }
 
 func TestDropErr(t *testing.T) {
+	t.Log("Testing droplet errors")
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 	}))

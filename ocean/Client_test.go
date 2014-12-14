@@ -10,8 +10,7 @@ import (
 	"testing"
 )
 
-type fakeDoer struct {
-}
+type fakeDoer struct{}
 
 func (d fakeDoer) doReq(r *http.Request) (*json.Decoder, error) {
 	return nil, errors.New("Foo")

@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -68,9 +69,9 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 	}
 
 	if 400 <= res.StatusCode && res.StatusCode < 500 {
-		return nil, errors.New(fmt.Sprintf("Client error %d", res.StatusCode))
+		return nil, errors.New(fmt.Sprintf("Client error: %s", res.Status))
 	} else if 500 <= res.StatusCode && res.StatusCode < 600 {
-		return nil, errors.New(fmt.Sprintf("Server error: %d", res.StatusCode))
+		return nil, errors.New(fmt.Sprintf("Server error: %s", res.Status))
 	}
 
 	c.ResponseTimes = append(c.ResponseTimes, ResponseTime{
@@ -78,7 +79,8 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 		Path: r.URL.String(),
 	})
 
-	return json.NewDecoder(res.Body), nil
+	// return json.NewDecoder(res.Body), nil
+	return json.NewDecoder(io.TeeReader(res.Body, os.Stdout)), nil
 }
 
 func (c *Client) doDelete(path string) (*json.Decoder, error) {
@@ -93,7 +95,7 @@ func (c *Client) doDelete(path string) (*json.Decoder, error) {
 
 //Do a post
 func (c *Client) doPost(path string, r io.Reader) (*json.Decoder, error) {
-	req, err := http.NewRequest("POST", c.BaseUrl+path, r)
+	req, err := http.NewRequest("POST", c.BaseUrl+path, io.TeeReader(r, os.Stdout))
 
 	if err != nil {
 		return nil, err
@@ -143,20 +145,6 @@ func (c *Client) GetImages() ([]Image, error) {
 
 	dec.Decode(is)
 
-	// dec2, err := c.doGet("images?type=distribution")
-
-	// if err != nil {
-	// 	return is.Images, err
-	// }
-
-	// is2 := &ImageResp{}
-
-	// dec2.Decode(is2)
-
-	// for _, i := range is2.Images {
-	// 	is.Images = append(is.Images, i)
-	// }
-
 	return is.Images, nil
 }
 
@@ -188,7 +176,8 @@ func (c *Client) GetDroplets() ([]Droplet, error) {
 	dec.Decode(d)
 
 	for i := range d.Droplets {
-		d.Droplets[i].Client = c
+		dr := &d.Droplets[i]
+		dr.Client = c
 	}
 
 	return d.Droplets, nil
