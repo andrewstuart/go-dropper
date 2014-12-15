@@ -14,12 +14,12 @@ type RegionSlug string
 
 //A region
 type Region struct {
-	Name      string     `json:"name"`
-	Slug      RegionSlug `json:"slug"`
-	Features  []string   `json:"features"`
-	Available bool       `json:"available"`
-	Sizes     []SizeSlug `json:"sizes"`
-	Images    map[string]*Image
+	Name      string            `json:"name"`
+	Slug      RegionSlug        `json:"slug"`
+	Features  []string          `json:"features"`
+	Available bool              `json:"available"`
+	Sizes     []SizeSlug        `json:"sizes"`
+	Images    map[string]*Image `json:"images,omitempty"`
 }
 
 //RegionResp is a wrapper for the region responses

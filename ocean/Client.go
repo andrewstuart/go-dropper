@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -79,8 +78,8 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 		Path: r.URL.String(),
 	})
 
-	// return json.NewDecoder(res.Body), nil
-	return json.NewDecoder(io.TeeReader(res.Body, os.Stdout)), nil
+	return json.NewDecoder(res.Body), nil
+	// return json.NewDecoder(io.TeeReader(res.Body, os.Stdout)), nil
 }
 
 func (c *Client) doDelete(path string) (*json.Decoder, error) {
