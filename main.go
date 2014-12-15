@@ -11,11 +11,9 @@ import (
 	"github.com/andrewstuart/dropper/ocean"
 )
 
-const NUM_TO_CREATE = 8
-
 var c *ocean.Client
 
-var dropMap map[string]*ocean.Droplet
+var dropMap = make(map[string]*ocean.Droplet)
 
 func init() {
 	s := os.ExpandEnv("$HOME/.do-token")
@@ -27,13 +25,16 @@ func init() {
 
 	c = ocean.NewClient(t)
 
-	dropMap = make(map[string]*ocean.Droplet)
-
 	drops, err := c.GetDroplets()
 
 	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err == nil && len(drops) > 0 {
 		for i := range drops {
 			drop := &drops[i]
+
 			idSt := strconv.Itoa(drop.Id)
 
 			dropMap[drop.Name] = drop
@@ -98,13 +99,22 @@ func main() {
 				log.Fatal(err)
 			}
 
-			for _, k := range ks {
-				kMap[k.Name] = k
+			keysToUse := []ocean.Slug{}
+			if *key == "*" {
+				for _, acctKey := range ks {
+					keysToUse = append(keysToUse, ocean.Slug(acctKey.Fingerprint))
+				}
+			} else {
+
+				for _, k := range ks {
+					kMap[k.Name] = k
+				}
+
+				keysToUse = append(keysToUse, ocean.Slug(kMap[*key].Fingerprint))
+
 			}
 
-			keyPrint := kMap[*key].Fingerprint
-
-			d.SshKeys = []ocean.Slug{ocean.Slug(keyPrint)}
+			d.SshKeys = keysToUse
 		}
 
 		err := c.CreateDroplet(d)
@@ -201,15 +211,19 @@ func main() {
 				}
 			}
 		} else {
-			drops, err := c.GetDroplets()
+			if len(dropMap) > 0 {
+				byId := make(map[int]*ocean.Droplet)
+				dropSlice := []*ocean.Droplet{}
 
-			if err != nil {
-				log.Fatal(err)
-			}
+				//Dedupe
+				for _, d := range dropMap {
+					if _, exists := byId[d.Id]; !exists {
+						byId[d.Id] = d
+					}
+				}
 
-			if len(drops) > 0 {
-				for i := range drops {
-					d := &drops[i]
+				//Print
+				for i, d := range dropSlice {
 					fmt.Fprintf(w, "%d.\t%d\t%s\t%s\t%s\t%v\n", i+1, d.Id, d.Name, d.Status, d.Size, d.Networks["v4"])
 				}
 			} else {
