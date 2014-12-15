@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+//Type ActionResp is returned by performing an action (most methods on a Droplet or Image)
 type ActionResp struct {
 	Id           int       `json:"id"`
 	Status       string    `json:"status"`
@@ -19,6 +20,7 @@ type ActionResp struct {
 	Region       Slug      `json:"region"`
 }
 
+//Have the droplet perform an action.
 func (d *Droplet) Perform(a *Action) (*ActionResp, error) {
 	if d == nil {
 		return nil, errors.New("Cannot perform action on nil Droplet pointer")
@@ -51,8 +53,10 @@ func (d *Droplet) Perform(a *Action) (*ActionResp, error) {
 	return ar, nil
 }
 
+//An action type is required to perform an action
 type Action map[string]string
 
+//NewAction returns an action of type 't'
 func NewAction(t string) *Action {
 	a := make(Action)
 	a["type"] = t

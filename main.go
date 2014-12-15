@@ -74,7 +74,21 @@ func main() {
 		}
 
 		if *key != "" {
-			d.SshKeys = []ocean.Slug{ocean.Slug(*key)}
+			kMap := make(map[string]ocean.SSHKey)
+
+			ks, err := c.GetSSHKeys()
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			for _, k := range ks {
+				kMap[k.Name] = k
+			}
+
+			keyPrint := kMap[*key].Fingerprint
+
+			d.SshKeys = []ocean.Slug{ocean.Slug(keyPrint)}
 		}
 
 		err := c.CreateDroplet(d)

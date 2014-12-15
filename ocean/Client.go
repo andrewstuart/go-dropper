@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -96,8 +95,8 @@ func (c *Client) doDelete(path string) (*json.Decoder, error) {
 
 //Do a post
 func (c *Client) doPost(path string, r io.Reader) (*json.Decoder, error) {
-	req, err := http.NewRequest("POST", c.BaseUrl+path, io.TeeReader(r, os.Stdout))
-	// req, err := http.NewRequest("POST", c.BaseUrl+path, r)
+	// req, err := http.NewRequest("POST", c.BaseUrl+path, io.TeeReader(r, os.Stdout))
+	req, err := http.NewRequest("POST", c.BaseUrl+path, r)
 
 	if err != nil {
 		return nil, err
@@ -211,7 +210,7 @@ func (c *Client) GetAccount() (*Account, error) {
 		return nil, errors.New(fmt.Sprintf("Error retreiving acount info:\n\t%v", err))
 	}
 
-	a := &AccountResp{}
+	a := &accountResp{}
 
 	dec.Decode(a)
 

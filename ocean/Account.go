@@ -10,6 +10,6 @@ type Account struct {
 	SSHByName     map[string]SSHKey
 }
 
-type AccountResp struct {
+type accountResp struct {
 	Account Account `json:"account"`
 }
