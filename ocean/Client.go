@@ -61,8 +61,9 @@ func NewClient(token Token) *Client {
 
 //Do a request
 func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
+	auth := fmt.Sprintf("Bearer %s", c.token)
 
-	r.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
+	r.Header["Authorization"] = []string{auth}
 
 	t := time.Now()
 	res, err := client.Do(r)
