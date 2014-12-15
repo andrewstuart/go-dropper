@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -15,6 +16,8 @@ const NUM_TO_CREATE = 8
 
 var c *ocean.Client
 
+var key ocean.SSHKey
+
 func init() {
 	s := os.ExpandEnv("$HOME/.do-token")
 	t, err := ReadToken(s)
@@ -24,6 +27,16 @@ func init() {
 	}
 
 	c = ocean.NewClient(t)
+
+	sshDir := os.ExpandEnv("$HOME/.ssh/id_rsa.pub")
+
+	bs, err := ioutil.ReadFile(sshDir)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	key = ocean.SSHKey(string(bs))
 }
 
 func main() {
@@ -53,7 +66,13 @@ func main() {
 		dropIdent := flag.Arg(1)
 
 		if chosenDrop, exists := dropMap[dropIdent]; exists {
-			chosenDrop.Delete()
+			err := chosenDrop.Delete()
+
+			if err != nil {
+				log.Fatal(err)
+			} else {
+				log.Printf("Successfully deleted droplet %d.\n", chosenDrop.Id)
+			}
 		} else {
 			log.Println("Droplet with that ID/name doesn't exist.")
 		}
@@ -67,7 +86,9 @@ func main() {
 			Image:  ocean.ImageSlug(*image),
 		}
 
-		log.Println(d)
+		if key != "" {
+			d.SshKeys = []ocean.SSHKey{key}
+		}
 
 		err := c.CreateDroplet(d)
 
@@ -88,8 +109,8 @@ func main() {
 		break
 	case "ls":
 
-		if len(os.Args) > 2 {
-			switch os.Args[2] {
+		if len(flag.Args()) > 1 {
+			switch flag.Arg(1) {
 			case "images":
 				imgs, err := c.GetImages()
 
@@ -123,22 +144,26 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+				fmt.Fprintln(w, "#\tSlug\tMemory\tVcpus\tHourly")
 				for i := range sizes {
 					s := &sizes[i]
 					fmt.Fprintf(w, "%d\t%s\t%v\t%v\t%v\n", i+1, s.Slug, s.Memory, s.VCpus, s.PriceHourly)
 				}
 			}
 		} else {
-
 			drops, err := c.GetDroplets()
 
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			for i := range drops {
-				d := &drops[i]
-				fmt.Fprintf(w, "%d.\t%s\t%s\t%v\n", i+1, d.Name, d.Size, d.Networks)
+			if len(drops) > 0 {
+				for i := range drops {
+					d := &drops[i]
+					fmt.Fprintf(w, "%d.\t%d\t%s\t%s\t%s\t%v\n", i+1, d.Id, d.Name, d.Status, d.Size, d.Networks["v4"])
+				}
+			} else {
+				log.Println("You don't have any droplets! Use 'dropper create' to make one.")
 			}
 		}
 		break

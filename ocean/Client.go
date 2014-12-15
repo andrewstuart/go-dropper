@@ -191,13 +191,11 @@ func (c *Client) CreateDroplet(d *Droplet) error {
 	}
 
 	r := strings.NewReader(string(b))
-	dec, err := c.doPost("droplets", r)
+	_, err = c.doPost("droplets", r)
 
 	if err != nil {
 		return err
 	}
-
-	dec.Decode(d)
 
 	d.Client = c
 
