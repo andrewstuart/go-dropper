@@ -13,4 +13,20 @@ type Size struct {
 
 type SizeResp struct {
 	Sizes []Size `json:"sizes"`
+	Size  *Size  `json:"size"`
+}
+
+//Get a list of sizes for the user
+func (c *Client) GetSizes() ([]Size, error) {
+	dec, err := c.doGet("sizes")
+
+	if err != nil {
+		return []Size{}, err
+	}
+
+	sr := &SizeResp{}
+
+	dec.Decode(sr)
+
+	return sr.Sizes, nil
 }

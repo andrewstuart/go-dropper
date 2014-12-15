@@ -15,8 +15,9 @@ type SSHKey struct {
 	Name        string `json:"name"`
 }
 
-type SSHCreateResp struct {
-	Key SSHKey `json:"ssh_key"`
+type sshResp struct {
+	Key  SSHKey   `json:"ssh_key"`
+	Keys []SSHKey `json:"ssh_keys"`
 }
 
 func ReadSSHKey(path, name string) (*SSHKey, error) {
@@ -53,17 +54,13 @@ func (c *Client) CreateSSHKey(s *SSHKey) error {
 		return errors.New(fmt.Sprintf("Error sending ssh key to DO:\n\t%v", err))
 	}
 
-	resp := &SSHCreateResp{}
+	resp := &sshResp{}
 
 	dec.Decode(resp)
 
 	*s = resp.Key
 
 	return nil
-}
-
-type SSHResp struct {
-	Keys []SSHKey `json:"ssh_keys"`
 }
 
 func (c *Client) GetSSHKeys() ([]SSHKey, error) {
@@ -73,7 +70,7 @@ func (c *Client) GetSSHKeys() ([]SSHKey, error) {
 		return []SSHKey{}, errors.New(fmt.Sprintf("Error getting keys:\n\t%v", err))
 	}
 
-	sr := &SSHResp{}
+	sr := &sshResp{}
 
 	err = dec.Decode(sr)
 

@@ -158,10 +158,11 @@ func main() {
 					log.Fatal(err)
 				}
 
+				fmt.Fprintln(w, "#\tDistro\tName\tSlug\tRegions")
 				for i := range imgs {
 					img := &imgs[i]
 
-					_, err := fmt.Fprintf(w, "%d.\t%s\t%s\t%v\n", i+1, img.Name, img.Slug, img.Regions)
+					_, err := fmt.Fprintf(w, "%d.\t%s\t%s\t%s\t%v\n", i+1, img.Distro, img.Name, img.Slug, img.Regions)
 
 					if err != nil {
 						log.Fatal(err)
@@ -174,9 +175,10 @@ func main() {
 					log.Fatal(err)
 				}
 
+				fmt.Fprintln(w, "#\tName\tSizes\tFeatures")
 				for i := range regs {
 					r := &regs[i]
-					fmt.Fprintf(w, "%d.\t%s\t%v\t%v\t%v\n", i+1, r.Name, r.Images, r.Sizes, r.Features)
+					fmt.Fprintf(w, "%d.\t%s\t%v\t%v\n", i+1, r.Name, r.Sizes, r.Features)
 				}
 				break
 			case "keys":
@@ -185,6 +187,7 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+				fmt.Fprintln(w, "#\tName\tFingerprint")
 				for i := range keys {
 					k := &keys[i]
 					fmt.Fprintf(w, "%d\t%s\t%s", i+1, k.Name, k.Fingerprint)
@@ -219,6 +222,8 @@ func main() {
 					}
 				}
 
+				fmt.Fprintln(w, "#\tId\tName\tStatus\tSize\tipv4")
+
 				//Print
 				for i, d := range dropSlice {
 					fmt.Fprintf(w, "%d.\t%d\t%s\t%s\t%s\t%v\n", i+1, d.Id, d.Name, d.Status, d.Size, d.Networks["v4"])
@@ -238,6 +243,8 @@ func main() {
 
 			if err != nil {
 				log.Fatal(err)
+			} else {
+				fmt.Printf("Restarted droplet %s(%d)\n", d.Name, d.Id)
 			}
 		}
 		break
@@ -247,12 +254,14 @@ func main() {
 			dropName := flag.Arg(1)
 			newName := flag.Arg(2)
 
-			if drop, exists := dropMap[dropName]; exists {
-				_, err := drop.Rename(newName)
+			if d, exists := dropMap[dropName]; exists {
+				_, err := d.Rename(newName)
 
 				if err != nil {
 					log.Fatal(err)
 				}
+
+				fmt.Printf("Renamed droplet %s(%d) to %s\n", dropName, d.Id, newName)
 			} else {
 				log.Fatal("A droplet with that name or id does not exist.\n")
 			}

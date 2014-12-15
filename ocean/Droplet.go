@@ -1,5 +1,10 @@
 package ocean
 
+import (
+	"encoding/json"
+	"strings"
+)
+
 type Slug string
 
 // type Httper interface {
@@ -33,10 +38,54 @@ type Droplet struct {
 	*Client
 }
 
-type DropCreateResp struct {
-	Droplet Droplet `json:"droplet"`
+type dropletResp struct {
+	Droplets []Droplet `json:"droplets"`
+	Droplet  *Droplet  `json:"droplet"`
 }
 
-type DropletResp struct {
-	Droplets []Droplet `json:"droplets"`
+//GetDroplets gets a list of the user's droplets
+//Returns an error if anything went wrong.
+func (c *Client) GetDroplets() ([]Droplet, error) {
+	dec, err := c.doGet("droplets")
+
+	if err != nil {
+		return []Droplet{}, err
+	}
+
+	d := &dropletResp{}
+	dec.Decode(d)
+
+	for i := range d.Droplets {
+		dr := &d.Droplets[i]
+		dr.Client = c
+	}
+
+	return d.Droplets, nil
+}
+
+//Pass in an adequately configured droplet type (minimum of 'Name', 'Image'(slug),
+//'Size'(slug), and 'Region'(slug) must be populated
+func (c *Client) CreateDroplet(d *Droplet) error {
+	b, err := json.Marshal(d)
+
+	if err != nil {
+		return err
+	}
+
+	r := strings.NewReader(string(b))
+	dec, err := c.doPost("droplets", r)
+
+	if err != nil {
+		return err
+	}
+
+	dr := &dropletResp{}
+
+	dec.Decode(dr)
+
+	*d = *dr.Droplet
+
+	d.Client = c
+
+	return nil
 }
