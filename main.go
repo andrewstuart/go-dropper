@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/andrewstuart/dropper/ocean"
@@ -16,29 +17,34 @@ var c *ocean.Client
 var dropMap = make(map[string]*ocean.Droplet)
 
 func init() {
-	s := os.ExpandEnv("$HOME/.do-token")
-	t, err := ReadToken(s)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	//Don't worry if there aren't any args.
+	if len(flag.Args()) > 0 {
 
-	c = ocean.NewClient(t)
+		s := os.ExpandEnv("$HOME/.do-token")
+		t, err := ReadToken(s)
 
-	drops, err := c.GetDroplets()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	if err != nil {
-		log.Fatal(err)
-	}
+		c = ocean.NewClient(t)
 
-	if err == nil && len(drops) > 0 {
-		for i := range drops {
-			drop := &drops[i]
+		drops, err := c.GetDroplets()
 
-			idSt := strconv.Itoa(drop.Id)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			dropMap[drop.Name] = drop
-			dropMap[idSt] = drop
+		if err == nil && len(drops) > 0 {
+			for i := range drops {
+				drop := &drops[i]
+
+				idSt := strconv.Itoa(drop.Id)
+
+				dropMap[drop.Name] = drop
+				dropMap[idSt] = drop
+			}
 		}
 	}
 }
@@ -50,23 +56,8 @@ func main() {
 
 	defer w.Flush()
 
-	switch cmd {
+	switch strings.ToLower(cmd) {
 	case "rm":
-		dropMap := make(map[string]*ocean.Droplet)
-
-		drops, err := c.GetDroplets()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for i := range drops {
-			d := &drops[i]
-
-			dropMap[d.Name] = d
-			dropMap[strconv.Itoa(d.Id)] = d
-		}
-
 		dropIdent := flag.Arg(1)
 
 		if chosenDrop, exists := dropMap[dropIdent]; exists {
@@ -75,10 +66,10 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			} else {
-				log.Printf("Successfully deleted droplet %d.\n", chosenDrop.Id)
+				fmt.Printf("Successfully deleted droplet %d.\n", chosenDrop.Id)
 			}
 		} else {
-			log.Println("Droplet with that ID/name doesn't exist.")
+			fmt.Println("Droplet with that ID/name doesn't exist.")
 		}
 
 		break
@@ -123,7 +114,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Created droplet %s with id %d", d.Name, d.Id)
+		fmt.Printf("Created droplet %s with id %d\n", d.Name, d.Id)
 		break
 	case "key":
 		if len(flag.Args()) > 2 {
@@ -132,7 +123,7 @@ func main() {
 
 			k, err := ocean.ReadSSHKey(path, name)
 
-			log.Println(k.PublicKey, k.Name)
+			fmt.Println(k.PublicKey, k.Name)
 
 			if err != nil {
 				log.Fatal(err)
@@ -154,7 +145,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		log.Println(acct)
+		fmt.Println(acct)
 		break
 	case "ls":
 
@@ -219,6 +210,7 @@ func main() {
 				for _, d := range dropMap {
 					if _, exists := byId[d.Id]; !exists {
 						byId[d.Id] = d
+						dropSlice = append(dropSlice, d)
 					}
 				}
 
@@ -227,13 +219,94 @@ func main() {
 					fmt.Fprintf(w, "%d.\t%d\t%s\t%s\t%s\t%v\n", i+1, d.Id, d.Name, d.Status, d.Size, d.Networks["v4"])
 				}
 			} else {
-				log.Println("You don't have any droplets! Use 'dropper create' to make one.")
+				fmt.Println("You don't have any droplets! Use 'dropper create' to make one.")
 			}
 		}
 		break
+	case "restart":
+		if enough := checkArgs(1, "Please provide a droplet name or id to restart"); enough {
+			dropName := flag.Arg(1)
+
+			d := dropMap[dropName]
+
+			_, err := d.Reboot()
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		break
+
+	case "rename":
+		if enough := checkArgs(2, "Please provide a current name and new name to rename"); enough {
+			dropName := flag.Arg(1)
+			newName := flag.Arg(2)
+
+			if drop, exists := dropMap[dropName]; exists {
+				_, err := drop.Rename(newName)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Fatal("A droplet with that name or id does not exist.\n")
+			}
+		}
+		break
+
+	case "shutdown":
+		if enough := checkArgs(1, "Please provide a droplet name or id to shutdown"); enough {
+			dropName := flag.Arg(1)
+
+			var err error
+
+			//Are we being asked to force the droplet off?
+			if len(flag.Args()) > 2 || *force {
+				if flag.Arg(2) == "-f" || *force {
+					_, err = dropMap[dropName].PowerOff()
+				}
+			} else {
+				_, err = dropMap[dropName].Shutdown()
+			}
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+	case "boot":
+		if enough := checkArgs(1, "Please provide a droplet name or id to boot"); enough {
+			dropName := flag.Arg(1)
+
+			_, err := dropMap[dropName].Boot()
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		break
+
 	default:
-		flag.Usage()
+		usage()
 		break
 	}
+}
 
+func usage() {
+	cmds := []string{"who", "ls", "  ls regions", "  ls images", "  ls sizes", "  ls keys", "create", "rm", "rename", "restart", "shutdown", "boot"}
+
+	fmt.Println("Please use a valid dropper command:")
+
+	for _, cmd := range cmds {
+		fmt.Printf("\t%s\n", cmd)
+	}
+}
+
+func checkArgs(n int, msg string) bool {
+	if len(flag.Args()) > n {
+		return true
+	} else {
+		fmt.Println(msg)
+		return false
+	}
 }

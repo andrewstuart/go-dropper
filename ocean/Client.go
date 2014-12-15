@@ -45,15 +45,19 @@ type Client struct {
 	BaseUrl       string
 	ResponseTimes []ResponseTime
 	Account       *Account
+	// WhenReady     <-chan bool
 	doer
 }
 
 //Get a client based on a token
 func NewClient(token Token) *Client {
-	return &Client{
+	c := &Client{
 		token:   token,
 		BaseUrl: DEFAULT_BASE_URL,
+		// WhenReady: make(chan bool),
 	}
+
+	return c
 }
 
 //Do a request
@@ -184,6 +188,10 @@ func (c *Client) GetDroplets() ([]Droplet, error) {
 	return d.Droplets, nil
 }
 
+type CreateDropletResp struct {
+	Droplet *Droplet `json:"droplet"`
+}
+
 func (c *Client) CreateDroplet(d *Droplet) error {
 	b, err := json.Marshal(d)
 
@@ -192,11 +200,17 @@ func (c *Client) CreateDroplet(d *Droplet) error {
 	}
 
 	r := strings.NewReader(string(b))
-	_, err = c.doPost("droplets", r)
+	dec, err := c.doPost("droplets", r)
 
 	if err != nil {
 		return err
 	}
+
+	dr := &CreateDropletResp{}
+
+	dec.Decode(dr)
+
+	*d = *dr.Droplet
 
 	d.Client = c
 
@@ -210,9 +224,9 @@ func (c *Client) GetAccount() (*Account, error) {
 		return nil, errors.New(fmt.Sprintf("Error retreiving acount info:\n\t%v", err))
 	}
 
-	a := &accountResp{}
+	a := &Account{}
 
 	dec.Decode(a)
 
-	return &a.Account, nil
+	return a, nil
 }
