@@ -10,9 +10,13 @@ import (
 
 type SSHKey struct {
 	Id          int    `json:"id,omitempty"`
-	Fingerprint string `json:"fingerprint, omitempty"`
+	Fingerprint string `json:"fingerprint,omitempty"`
 	PublicKey   string `json:"public_key"`
 	Name        string `json:"name"`
+}
+
+type SSHCreateResp struct {
+	Key SSHKey `json:"ssh_key"`
 }
 
 func ReadSSHKey(path, name string) (*SSHKey, error) {
@@ -22,19 +26,23 @@ func ReadSSHKey(path, name string) (*SSHKey, error) {
 		return nil, err
 	}
 
+	s := string(b)
+
+	s = strings.Replace(s, "\n", "", -1)
+
 	k := &SSHKey{
-		PublicKey: string(b),
+		PublicKey: s,
 		Name:      name,
 	}
 
 	return k, nil
 }
 
-func (c *Client) CreateSSHKey(s *SSHKey) (*SSHKey, error) {
+func (c *Client) CreateSSHKey(s *SSHKey) error {
 	b, err := json.Marshal(s)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rdr := strings.NewReader(string(b))
@@ -42,12 +50,36 @@ func (c *Client) CreateSSHKey(s *SSHKey) (*SSHKey, error) {
 	dec, err := c.doPost("account/keys", rdr)
 
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error sending ssh key to DO:\n\t%v", err))
+		return errors.New(fmt.Sprintf("Error sending ssh key to DO:\n\t%v", err))
 	}
 
-	k := &SSHKey{}
+	resp := &SSHCreateResp{}
 
-	dec.Decode(k)
+	dec.Decode(resp)
 
-	return k, nil
+	*s = resp.Key
+
+	return nil
+}
+
+type SSHResp struct {
+	Keys []SSHKey `json:"ssh_keys"`
+}
+
+func (c *Client) GetSSHKeys() ([]SSHKey, error) {
+	dec, err := c.doGet("account/keys")
+
+	if err != nil {
+		return []SSHKey{}, errors.New(fmt.Sprintf("Error getting keys:\n\t%v", err))
+	}
+
+	sr := &SSHResp{}
+
+	err = dec.Decode(sr)
+
+	if err != nil {
+		return []SSHKey{}, err
+	}
+
+	return sr.Keys, nil
 }

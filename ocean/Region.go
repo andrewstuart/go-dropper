@@ -10,15 +10,13 @@ const (
 	EB
 )
 
-type RegionSlug string
-
 //A region
 type Region struct {
 	Name      string            `json:"name"`
-	Slug      RegionSlug        `json:"slug"`
+	Slug      Slug              `json:"slug"`
 	Features  []string          `json:"features"`
 	Available bool              `json:"available"`
-	Sizes     []SizeSlug        `json:"sizes"`
+	Sizes     []Slug            `json:"sizes"`
 	Images    map[string]*Image `json:"images,omitempty"`
 }
 

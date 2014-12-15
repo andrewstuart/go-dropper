@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -16,8 +15,6 @@ const NUM_TO_CREATE = 8
 
 var c *ocean.Client
 
-var key ocean.SSHKey
-
 func init() {
 	s := os.ExpandEnv("$HOME/.do-token")
 	t, err := ReadToken(s)
@@ -27,16 +24,6 @@ func init() {
 	}
 
 	c = ocean.NewClient(t)
-
-	sshDir := os.ExpandEnv("$HOME/.ssh/id_rsa.pub")
-
-	bs, err := ioutil.ReadFile(sshDir)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	key = ocean.SSHKey(string(bs))
 }
 
 func main() {
@@ -80,14 +67,14 @@ func main() {
 		break
 	case "create":
 		d := &ocean.Droplet{
-			Name:   name,
-			Region: ocean.RegionSlug(*region),
-			Size:   ocean.SizeSlug(*size),
-			Image:  ocean.ImageSlug(*image),
+			Name:   *name,
+			Region: ocean.Slug(*region),
+			Size:   ocean.Slug(*size),
+			Image:  ocean.Slug(*image),
 		}
 
-		if key != "" {
-			d.SshKeys = []ocean.SSHKey{key}
+		if *key != "" {
+			d.SshKeys = []ocean.Slug{ocean.Slug(*key)}
 		}
 
 		err := c.CreateDroplet(d)
@@ -97,6 +84,28 @@ func main() {
 		}
 
 		fmt.Printf("Created droplet %s with id %d", d.Name, d.Id)
+		break
+	case "key":
+		if len(flag.Args()) > 2 {
+			name := flag.Arg(1)
+			path := os.ExpandEnv(flag.Arg(2))
+
+			k, err := ocean.ReadSSHKey(path, name)
+
+			log.Println(k.PublicKey, k.Name)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			err = c.CreateSSHKey(k)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			log.Fatal("SSH requires a keyname and filename as an argument.")
+		}
 		break
 	case "who":
 		acct, err := c.GetAccount()
@@ -137,6 +146,17 @@ func main() {
 				for i := range regs {
 					r := &regs[i]
 					fmt.Fprintf(w, "%d.\t%s\t%v\t%v\t%v\n", i+1, r.Name, r.Images, r.Sizes, r.Features)
+				}
+				break
+			case "keys":
+				keys, err := c.GetSSHKeys()
+
+				if err != nil {
+					log.Fatal(err)
+				}
+				for i := range keys {
+					k := &keys[i]
+					fmt.Fprintf(w, "%d\t%s\t%s", i+1, k.Name, k.Fingerprint)
 				}
 				break
 			case "sizes":

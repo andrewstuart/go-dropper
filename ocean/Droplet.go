@@ -1,6 +1,6 @@
 package ocean
 
-type SSHKey string
+type Slug string
 
 // type Httper interface {
 // 	DoReq(*http.Request) *json.Decoder
@@ -19,12 +19,12 @@ type Network struct {
 type Droplet struct {
 	Id                int                  `json:"id,omitempty"`
 	Name              string               `json:"name"`
-	Region            RegionSlug           `json:"region"`
-	Size              SizeSlug             `json:"size"`
-	Image             ImageSlug            `json:"image"`
+	Region            Slug                 `json:"region"`
+	Size              Slug                 `json:"size"`
+	Image             Slug                 `json:"image"`
 	Backups           bool                 `json:"backups"`
 	IPv6              bool                 `json:"ipv6,omitempty"`
-	SshKeys           []SSHKey             `json:"ssh_keys,omitempty"`
+	SshKeys           []Slug               `json:"ssh_keys,omitempty"`
 	PrivateNetworking bool                 `json:"private_networking"`
 	UserData          string               `json:"user_data,omitempty"`
 	Locked            bool                 `json:"locked,omitempty"`

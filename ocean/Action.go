@@ -9,14 +9,14 @@ import (
 )
 
 type ActionResp struct {
-	Id           int        `json:"id"`
-	Status       string     `json:"status"`
-	Type         string     `json:"type"`
-	StartedAt    time.Time  `json:"started_at"`
-	CompletedAt  time.Time  `json:"completed_at"`
-	ResourceId   int        `json:"resource_id"`
-	ResourceType int        `json:"resource_type"`
-	Region       RegionSlug `json:"region"`
+	Id           int       `json:"id"`
+	Status       string    `json:"status"`
+	Type         string    `json:"type"`
+	StartedAt    time.Time `json:"started_at"`
+	CompletedAt  time.Time `json:"completed_at"`
+	ResourceId   int       `json:"resource_id"`
+	ResourceType int       `json:"resource_type"`
+	Region       Slug      `json:"region"`
 }
 
 func (d *Droplet) Perform(a *Action) (*ActionResp, error) {
@@ -95,6 +95,7 @@ func (d *Droplet) Boot() (*ActionResp, error) {
 //Rename a Droplet
 func (d *Droplet) Rename(name string) (*ActionResp, error) {
 	a := *NewAction("rename")
+
 	a["name"] = name
 
 	return d.Perform(&a)
