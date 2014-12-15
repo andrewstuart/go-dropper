@@ -188,10 +188,12 @@ func (c *Client) GetDroplets() ([]Droplet, error) {
 	return d.Droplets, nil
 }
 
-type CreateDropletResp struct {
+type dropletCreateResp struct {
 	Droplet *Droplet `json:"droplet"`
 }
 
+//Pass in an adequately configured droplet type (minimum of 'Name', 'Image'(slug),
+//'Size'(slug), and 'Region'(slug) must be populated
 func (c *Client) CreateDroplet(d *Droplet) error {
 	b, err := json.Marshal(d)
 
@@ -206,7 +208,7 @@ func (c *Client) CreateDroplet(d *Droplet) error {
 		return err
 	}
 
-	dr := &CreateDropletResp{}
+	dr := &dropletCreateResp{}
 
 	dec.Decode(dr)
 
@@ -217,6 +219,11 @@ func (c *Client) CreateDroplet(d *Droplet) error {
 	return nil
 }
 
+type AccountResp struct {
+	Account *Account `json:"account"`
+}
+
+//Get account information for the current user
 func (c *Client) GetAccount() (*Account, error) {
 	dec, err := c.doGet("account")
 
@@ -224,9 +231,9 @@ func (c *Client) GetAccount() (*Account, error) {
 		return nil, errors.New(fmt.Sprintf("Error retreiving acount info:\n\t%v", err))
 	}
 
-	a := &Account{}
+	a := &AccountResp{}
 
 	dec.Decode(a)
 
-	return a, nil
+	return a.Account, nil
 }

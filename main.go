@@ -145,7 +145,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Println(acct)
+		fmt.Printf("Account for %s\tDroplet limit: %d\n", acct.Email, acct.DropletLimit)
 		break
 	case "ls":
 
@@ -200,7 +200,12 @@ func main() {
 					s := &sizes[i]
 					fmt.Fprintf(w, "%d\t%s\t%v\t%v\t%v\n", i+1, s.Slug, s.Memory, s.VCpus, s.PriceHourly)
 				}
+				break
+			default:
+				usage()
+				break
 			}
+
 		} else {
 			if len(dropMap) > 0 {
 				byId := make(map[int]*ocean.Droplet)
@@ -300,6 +305,8 @@ func usage() {
 	for _, cmd := range cmds {
 		fmt.Printf("\t%s\n", cmd)
 	}
+
+	os.Exit(1)
 }
 
 func checkArgs(n int, msg string) bool {
