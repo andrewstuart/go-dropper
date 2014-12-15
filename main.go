@@ -15,6 +15,8 @@ const NUM_TO_CREATE = 8
 
 var c *ocean.Client
 
+var dropMap map[string]*ocean.Droplet
+
 func init() {
 	s := os.ExpandEnv("$HOME/.do-token")
 	t, err := ReadToken(s)
@@ -24,6 +26,20 @@ func init() {
 	}
 
 	c = ocean.NewClient(t)
+
+	dropMap = make(map[string]*ocean.Droplet)
+
+	drops, err := c.GetDroplets()
+
+	if err != nil {
+		for i := range drops {
+			drop := &drops[i]
+			idSt := strconv.Itoa(drop.Id)
+
+			dropMap[drop.Name] = drop
+			dropMap[idSt] = drop
+		}
+	}
 }
 
 func main() {
@@ -201,5 +217,9 @@ func main() {
 			}
 		}
 		break
+	default:
+		flag.Usage()
+		break
 	}
+
 }
