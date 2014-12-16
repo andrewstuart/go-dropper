@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-//Type ActionResp is returned by performing an action (most methods on a Droplet or Image)
-type ActionResp struct {
+//Type ActionResult is returned by performing an action (most methods on a Droplet or Image)
+type ActionResult struct {
 	Id           int       `json:"id"`
 	Status       string    `json:"status"`
 	Type         string    `json:"type"`
@@ -20,8 +20,31 @@ type ActionResp struct {
 	Region       Slug      `json:"region"`
 }
 
+type ActionResp struct {
+	Action  *Action   `json:"action"`
+	Actions []*Action `json:"actions"`
+}
+
+func (c *Client) GetActionLog() ([]*ActionResult, error) {
+	dec, err := c.doGet("actions")
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error retreiving actions:\n\t%v", err))
+	}
+
+	ar := []*ActionResult{}
+
+	err = dec.Decode(ar)
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error decoding response:\n\t%v", err))
+	}
+
+	return ar, nil
+}
+
 //Have the droplet perform an action.
-func (d *Droplet) Perform(a *Action) (*ActionResp, error) {
+func (d *Droplet) Perform(a *Action) (*ActionResult, error) {
 	if d == nil {
 		return nil, errors.New("Cannot perform action on nil Droplet pointer")
 	}
@@ -42,7 +65,7 @@ func (d *Droplet) Perform(a *Action) (*ActionResp, error) {
 
 	dec, err := d.doPost(url, r)
 
-	ar := &ActionResp{}
+	ar := &ActionResult{}
 
 	err = dec.Decode(ar)
 
@@ -77,27 +100,27 @@ func (d *Droplet) Delete() error {
 }
 
 //Reboot a Droplet
-func (d *Droplet) Reboot() (*ActionResp, error) {
+func (d *Droplet) Reboot() (*ActionResult, error) {
 	return d.Perform(NewAction("reboot"))
 }
 
 //Shutdown a Droplet
-func (d *Droplet) Shutdown() (*ActionResp, error) {
+func (d *Droplet) Shutdown() (*ActionResult, error) {
 	return d.Perform(NewAction("shutdown"))
 }
 
 //Force off a Droplet
-func (d *Droplet) PowerOff() (*ActionResp, error) {
+func (d *Droplet) PowerOff() (*ActionResult, error) {
 	return d.Perform(NewAction("power_off"))
 }
 
 //Boot a Droplet
-func (d *Droplet) Boot() (*ActionResp, error) {
+func (d *Droplet) Boot() (*ActionResult, error) {
 	return d.Perform(NewAction("power_on"))
 }
 
 //Rename a Droplet
-func (d *Droplet) Rename(name string) (*ActionResp, error) {
+func (d *Droplet) Rename(name string) (*ActionResult, error) {
 	a := *NewAction("rename")
 
 	a["name"] = name
