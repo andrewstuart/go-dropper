@@ -35,7 +35,7 @@ type Droplet struct {
 	Locked            bool                 `json:"locked,omitempty"`
 	Networks          map[string][]Network `json:"networks,omitempty"`
 	Status            string               `json:"status,omitempty"`
-	Client
+	*Client
 }
 
 type dropletResp struct {
@@ -57,7 +57,7 @@ func (c *Client) GetDroplets() ([]Droplet, error) {
 
 	for i := range d.Droplets {
 		dr := &d.Droplets[i]
-		dr.Client = *c
+		dr.Client = c
 	}
 
 	return d.Droplets, nil
@@ -81,11 +81,15 @@ func (c *Client) CreateDroplet(d *Droplet) error {
 
 	dr := &dropletResp{}
 
-	dec.Decode(dr)
+	err = dec.Decode(dr)
+
+	if err != nil {
+		return err
+	}
 
 	*d = *dr.Droplet
 
-	d.Client = *c
+	d.Client = c
 
 	return nil
 }
