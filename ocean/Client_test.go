@@ -182,7 +182,5 @@ func testCreate(ts *httptest.Server) error {
 
 	c := NewClient("abc")
 	c.BaseUrl = ts.URL + "/"
-	err := c.CreateDroplet(&Droplet{})
-
-	return err
+	return c.CreateDroplet(&Droplet{})
 }
