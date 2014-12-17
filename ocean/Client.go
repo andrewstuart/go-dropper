@@ -93,10 +93,12 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 		}
 
 		var errMsg string
-		if err != nil {
-			errMsg = fmt.Sprintf("%s error, plus error decoding DO message: %s--\n\t%v", errType, res.Status, err)
+		if err == nil && m.Message != "" {
+			errMsg = fmt.Sprintf("%s error: %s:\n\t%s", errType, res.Status, m.Message)
+		} else if err != nil {
+			errMsg = fmt.Sprintf("%s error, plus error decoding DO message: %s:\n\t%v", errType, res.Status, err)
 		} else {
-			errMsg = fmt.Sprintf("%s error: %s--\n\t%s", errType, res.Status, m.Message)
+			errMsg = fmt.Sprintf("%s error: %s:\n\t", errType, res.Status)
 		}
 
 		return nil, errors.New(errMsg)
