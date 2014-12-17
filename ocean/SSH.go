@@ -58,7 +58,7 @@ func (c *Client) CreateSSHKey(s *SSHKey) error {
 	err = dec.Decode(resp)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error decoding ssh response:\n\t%v:", err)
+		return fmt.Errorf("Error decoding ssh response:\n\t%v:", err)
 	}
 
 	*s = resp.Key
