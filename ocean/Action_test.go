@@ -42,6 +42,9 @@ func TestAction(t *testing.T) {
 }
 
 func TestSnapshot(t *testing.T) {
+}
+
+func testEvent(e string, t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/droplets/123/actions" {
 			t.Error("Error: Wrong path")
@@ -57,7 +60,7 @@ func TestSnapshot(t *testing.T) {
 			t.Errorf("Error decoding req body:\n\t%v", err)
 		}
 
-		if a["type"] != "snaphot" && a["name"] != "Foo" {
+		if a["type"] != "snaphot" {
 			t.Errorf("Error: Wrong action for snapshot %s %s", a["type"], a["name"])
 		}
 

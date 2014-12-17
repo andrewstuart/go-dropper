@@ -1,5 +1,15 @@
 package ocean
 
+const (
+	B = 1 << (10 * iota)
+	KB
+	MB
+	GB
+	TB
+	PB
+	EB
+)
+
 type Size struct {
 	Slug         Slug    `json:"slug"`
 	Memory       int64   `json:"memory"`
