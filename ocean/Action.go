@@ -132,16 +132,24 @@ func (d *Droplet) Rename(name string) (*ActionResult, error) {
 	return d.Perform(&a)
 }
 
+//Create a snapshot with a given name
 func (d *Droplet) Snapshot(name string) (*ActionResult, error) {
 	a := *NewAction("snapshot")
 	a["name"] = name
 	return d.Perform(&a)
 }
 
+//Enable IPv6 for a droplet
 func (d *Droplet) EnableIPv6() (*ActionResult, error) {
 	return d.Perform(NewAction("enable_ipv6"))
 }
 
+//Enable private networking for a droplet
+func (d *Droplet) EnablePrivateNetworking() (*ActionResult, error) {
+	return d.Perform(NewAction("enable_private_networking"))
+}
+
+//Rebuild a droplet
 func (d *Droplet) Rebuild(image string) (*ActionResult, error) {
 	a := *NewAction("rebuild")
 	a["image"] = image
