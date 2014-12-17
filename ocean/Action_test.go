@@ -57,8 +57,8 @@ func TestSnapshot(t *testing.T) {
 			t.Errorf("Error decoding req body:\n\t%v", err)
 		}
 
-		if a["type"] != "snapshot" {
-			t.Errorf("Error: Wrong action type for snapshot: %s", a["type"])
+		if a["type"] != "snaphot" && a["name"] != "Foo" {
+			t.Errorf("Error: Wrong action for snapshot %s %s", a["type"], a["name"])
 		}
 
 		fmt.Fprintln(w, `{"status": "foo", "id": 123}`)
@@ -73,7 +73,7 @@ func TestSnapshot(t *testing.T) {
 		Client: c,
 	}
 
-	_, err := d.Snapshot()
+	_, err := d.Snapshot("Foo")
 
 	if err != nil {
 		t.Errorf("Error creating snapshot:\n\t%v", err)

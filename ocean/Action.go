@@ -132,7 +132,8 @@ func (d *Droplet) Rename(name string) (*ActionResult, error) {
 	return d.Perform(&a)
 }
 
-func (d *Droplet) Snapshot() (*ActionResult, error) {
+func (d *Droplet) Snapshot(name string) (*ActionResult, error) {
 	a := *NewAction("snapshot")
+	a["name"] = name
 	return d.Perform(&a)
 }
