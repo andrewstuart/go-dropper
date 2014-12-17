@@ -31,4 +31,12 @@ func TestGetRegions(t *testing.T) {
 	if len(rs) != 2 {
 		t.Error("Error: wrong number of regions.")
 	}
+
+	c.doer = &fakeDoer{}
+
+	_, err = c.GetRegions()
+
+	if err == nil {
+		t.Error("Error: GetRegions did not propagate error")
+	}
 }
