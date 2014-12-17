@@ -334,7 +334,7 @@ func main() {
 }
 
 func usage() {
-	cmds := []string{"who", "ls", "  ls regions", "  ls images", "  ls sizes", "  ls keys", "create", "rm", "rename", "restart", "shutdown", "boot"}
+	cmds := []string{"who", "log", "ls", "  ls regions", "  ls images", "  ls sizes", "  ls keys", "create", "rm", "rename", "restart", "shutdown", "boot", "snapshot"}
 
 	fmt.Println("Please use a valid dropper command:")
 
