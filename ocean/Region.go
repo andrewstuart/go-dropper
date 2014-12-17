@@ -1,15 +1,5 @@
 package ocean
 
-const (
-	B = 1 << (10 * iota)
-	KB
-	MB
-	GB
-	TB
-	PB
-	EB
-)
-
 //A region
 type Region struct {
 	Name         string   `json:"name"`
@@ -20,12 +10,6 @@ type Region struct {
 	ImagesBySlug map[Slug]*Image
 }
 
-//RegionResp is a wrapper for the region responses
-type RegionResp struct {
-	Regions []Region `json:"regions"`
-	Region  *Region  `json:"region"`
-}
-
 //Get a list of regions for the user
 func (c *Client) GetRegions() ([]Region, error) {
 	dec, err := c.doGet("regions")
@@ -34,7 +18,8 @@ func (c *Client) GetRegions() ([]Region, error) {
 		return []Region{}, err
 	}
 
-	rs := &RegionResp{}
+	//Struct literal for brevity
+	rs := &struct{ Regions []Region }{}
 
 	dec.Decode(rs)
 
