@@ -1,5 +1,10 @@
 package ocean
 
+import (
+	"errors"
+	"fmt"
+)
+
 type Image struct {
 	Id      int    `json:"id"`
 	Name    string `json:"name"`
@@ -20,12 +25,16 @@ func (c *Client) GetImages() ([]Image, error) {
 	dec, err := c.doGet("images?per_page=100")
 
 	if err != nil {
-		return []Image{}, err
+		return nil, errors.New(fmt.Sprintf("Error retrieving images:\n\t%v", err))
 	}
 
 	is := &imageResp{}
 
-	dec.Decode(is)
+	err = dec.Decode(is)
+
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error decoding response from DO:\n\t%v", err))
+	}
 
 	return is.Images, nil
 }
