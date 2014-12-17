@@ -13,7 +13,7 @@ import (
 type fakeDoer struct{}
 
 func (d fakeDoer) doReq(r *http.Request) (*json.Decoder, error) {
-	return nil, errors.New("Foo")
+	return nil, errors.New("Error")
 }
 
 func TestHeaders(t *testing.T) {
