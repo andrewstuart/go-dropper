@@ -137,3 +137,13 @@ func (d *Droplet) Snapshot(name string) (*ActionResult, error) {
 	a["name"] = name
 	return d.Perform(&a)
 }
+
+func (d *Droplet) EnableIPv6() (*ActionResult, error) {
+	return d.Perform(NewAction("enable_ipv6"))
+}
+
+func (d *Droplet) Rebuild(image string) (*ActionResult, error) {
+	a := *NewAction("rebuild")
+	a["image"] = image
+	return d.Perform(&a)
+}
