@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/andrewstuart/dropper/ocean"
 )
@@ -57,6 +58,20 @@ func main() {
 	defer w.Flush()
 
 	switch strings.ToLower(cmd) {
+	case "log":
+		actions, err := c.GetActionLog()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Fprintln(w, "#\tType\tStatus\tStarted\tCompleted")
+		for i := range actions {
+			action := actions[i]
+
+			fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n", i+1, action.Type, action.Status, action.StartedAt.Format(time.RFC3339Nano), action.CompletedAt.Format(time.RFC3339Nano))
+		}
+
 	case "rm":
 		dropIdent := flag.Arg(1)
 
