@@ -2,6 +2,7 @@ package ocean
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -49,11 +50,15 @@ func (c *Client) GetDroplets() ([]Droplet, error) {
 	dec, err := c.doGet("droplets")
 
 	if err != nil {
-		return []Droplet{}, err
+		return nil, fmt.Errorf("Error retreiving droplets:\n\t%v", err)
 	}
 
 	d := &dropletResp{}
-	dec.Decode(d)
+	err = dec.Decode(d)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error decoding droplet response:\n\t%v", err)
+	}
 
 	for i := range d.Droplets {
 		dr := &d.Droplets[i]
