@@ -19,6 +19,11 @@ type doer interface {
 	doReq(*http.Request) (*json.Decoder, error)
 }
 
+type errMessage struct {
+	Id      string `json:"id"`
+	Message string `json:"message"`
+}
+
 const DEFAULT_BASE_URL = "https://api.digitalocean.com/v2/"
 
 //Basic abstraction over string in case token type changes
@@ -73,8 +78,32 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 	}
 
 	if 400 <= res.StatusCode && res.StatusCode < 500 {
+		m := &errMessage{}
+		if res.Body != nil {
+			dec := json.NewDecoder(res.Body)
+
+			err := dec.Decode(m)
+
+			if err != nil {
+				return nil, errors.New(fmt.Sprintf("Client error, plus error decoding DigitalOcean response:\n\t%v", err))
+			}
+
+			return errors.New(fmt.Sprintf("Client error %d:\n\t%v", res.Status, m.Message))
+		}
 		return nil, errors.New(fmt.Sprintf("Client error: %s", res.Status))
 	} else if 500 <= res.StatusCode && res.StatusCode < 600 {
+		m := &errMessage{}
+		if res.Body != nil {
+			dec := json.NewDecoder(res.Body)
+
+			err := dec.Decode(m)
+
+			if err != nil {
+				return nil, errors.New(fmt.Sprintf("Server error, plus error decoding DigitalOcean response:\n\t%v", err))
+			}
+
+			return errors.New(fmt.Sprintf("Server error %d:\n\t%v", res.Status, m.Message))
+		}
 		return nil, errors.New(fmt.Sprintf("Server error: %s", res.Status))
 	}
 
