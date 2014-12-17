@@ -315,6 +315,18 @@ func main() {
 		}
 		break
 
+	case "snapshot":
+		if enough := checkArgs(2, "Please provide a droplet name"); enough {
+			dropName := flag.Arg(1)
+			snapName := flag.Arg(2)
+
+			_, err := dropMap[dropName].Snapshot(snapName)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		break
 	default:
 		usage()
 		break
