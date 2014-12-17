@@ -21,7 +21,7 @@ func TestDeleteDroplet(t *testing.T) {
 	c.BaseUrl = ts.URL + "/"
 
 	d := Droplet{}
-	d.Client = c
+	d.Client = *c
 
 	err := d.Delete()
 
@@ -41,7 +41,7 @@ func TestDropErr(t *testing.T) {
 	c.doer = fakeDoer{}
 
 	d := Droplet{
-		Client: c,
+		Client: *c,
 	}
 
 	err := d.Delete()
