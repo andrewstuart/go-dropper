@@ -1,9 +1,6 @@
 package ocean
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
 //Account holds all relevant account info
 type Account struct {
@@ -24,12 +21,16 @@ func (c *Client) GetAccount() (*Account, error) {
 	dec, err := c.doGet("account")
 
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error retreiving acount info:\n\t%v", err))
+		return nil, fmt.Errorf("Error retreiving acount info:\n\t%v", err)
 	}
 
 	a := &accountResp{}
 
-	dec.Decode(a)
+	err = dec.Decode(a)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error decoding Account response:\n\t%v", err)
+	}
 
 	return a.Account, nil
 }
