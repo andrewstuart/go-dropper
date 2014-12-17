@@ -2,7 +2,6 @@ package ocean
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -51,12 +50,16 @@ func (c *Client) CreateSSHKey(s *SSHKey) error {
 	dec, err := c.doPost("account/keys", rdr)
 
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error sending ssh key to DO:\n\t%v", err))
+		return fmt.Errorf("Error sending ssh key to DO:\n\t%v", err)
 	}
 
 	resp := &sshResp{}
 
-	dec.Decode(resp)
+	err = dec.Decode(resp)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error decoding ssh response:\n\t%v:", err)
+	}
 
 	*s = resp.Key
 
@@ -67,7 +70,7 @@ func (c *Client) GetSSHKeys() ([]SSHKey, error) {
 	dec, err := c.doGet("account/keys")
 
 	if err != nil {
-		return []SSHKey{}, errors.New(fmt.Sprintf("Error getting keys:\n\t%v", err))
+		return []SSHKey{}, fmt.Errorf("Error getting keys:\n\t%v", err)
 	}
 
 	sr := &sshResp{}
@@ -75,7 +78,7 @@ func (c *Client) GetSSHKeys() ([]SSHKey, error) {
 	err = dec.Decode(sr)
 
 	if err != nil {
-		return []SSHKey{}, err
+		return nil, err
 	}
 
 	return sr.Keys, nil
