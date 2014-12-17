@@ -77,34 +77,29 @@ func (c *Client) doReq(r *http.Request) (*json.Decoder, error) {
 		return nil, err
 	}
 
-	if 400 <= res.StatusCode && res.StatusCode < 500 {
+	if 400 <= res.StatusCode && res.StatusCode < 600 {
 		m := &errMessage{}
+		var errType string
+
+		if res.StatusCode < 500 {
+			errType = "Client"
+		} else {
+			errType = "Server"
+		}
+
 		if res.Body != nil {
 			dec := json.NewDecoder(res.Body)
-
-			err := dec.Decode(m)
-
-			if err != nil {
-				return nil, errors.New(fmt.Sprintf("Client error, plus error decoding DigitalOcean response:\n\t%v", err))
-			}
-
-			return errors.New(fmt.Sprintf("Client error %d:\n\t%v", res.Status, m.Message))
+			err = dec.Decode(m)
 		}
-		return nil, errors.New(fmt.Sprintf("Client error: %s", res.Status))
-	} else if 500 <= res.StatusCode && res.StatusCode < 600 {
-		m := &errMessage{}
-		if res.Body != nil {
-			dec := json.NewDecoder(res.Body)
 
-			err := dec.Decode(m)
-
-			if err != nil {
-				return nil, errors.New(fmt.Sprintf("Server error, plus error decoding DigitalOcean response:\n\t%v", err))
-			}
-
-			return errors.New(fmt.Sprintf("Server error %d:\n\t%v", res.Status, m.Message))
+		var errMsg string
+		if err != nil {
+			errMsg = fmt.Sprintf("%s error, plus error decoding DO message: %s--\n\t%v", errType, res.Status, err)
+		} else {
+			errMsg = fmt.Sprintf("%s error: %s--\n\t%s", errType, res.Status, m.Message)
 		}
-		return nil, errors.New(fmt.Sprintf("Server error: %s", res.Status))
+
+		return nil, errors.New(errMsg)
 	}
 
 	c.ResponseTimes = append(c.ResponseTimes, ResponseTime{
