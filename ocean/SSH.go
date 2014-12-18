@@ -14,11 +14,6 @@ type SSHKey struct {
 	Name        string `json:"name"`
 }
 
-type sshResp struct {
-	Key  SSHKey   `json:"ssh_key"`
-	Keys []SSHKey `json:"ssh_keys"`
-}
-
 func ReadSSHKey(path, name string) (*SSHKey, error) {
 	b, err := ioutil.ReadFile(path)
 
@@ -53,7 +48,7 @@ func (c *Client) CreateSSHKey(s *SSHKey) error {
 		return fmt.Errorf("Error sending ssh key to DO:\n\t%v", err)
 	}
 
-	resp := &sshResp{}
+	resp := &struct{ Key SSHKey }{}
 
 	err = dec.Decode(resp)
 
@@ -73,7 +68,8 @@ func (c *Client) GetSSHKeys() ([]SSHKey, error) {
 		return []SSHKey{}, fmt.Errorf("Error getting keys:\n\t%v", err)
 	}
 
-	sr := &sshResp{}
+	//SSH Response
+	sr := &struct{ Keys []SSHKey }{}
 
 	err = dec.Decode(sr)
 

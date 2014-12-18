@@ -1,8 +1,8 @@
 package ocean
 
 import (
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -22,7 +22,8 @@ func TestCreateSSH(t *testing.T) {
 			t.Errorf("Request body did not contain public_key")
 		}
 
-		log.Println(body)
+		fmt.Fprintln(w, `{"key": {"name": "bar", "public_key": "ssh-rsa foo a@example.com"}}`)
+
 	}))
 	defer ts.Close()
 
