@@ -120,7 +120,7 @@ func (c *Client) doDelete(path string) (*json.Decoder, error) {
 		return nil, err
 	}
 
-	return c.doer.doReq(req)
+	return c.doReq(req)
 }
 
 //Do a post
@@ -134,7 +134,7 @@ func (c *Client) doPost(path string, r io.Reader) (*json.Decoder, error) {
 
 	req.Header["Content-Type"] = []string{"application/json"}
 
-	return c.doer.doReq(req)
+	return c.doReq(req)
 }
 
 //Do a get
@@ -145,5 +145,5 @@ func (c *Client) doGet(path string) (*json.Decoder, error) {
 		return nil, err
 	}
 
-	return c.doer.doReq(req)
+	return c.doReq(req)
 }
